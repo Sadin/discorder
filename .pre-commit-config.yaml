@@ -1,0 +1,11 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.2.0
+    hooks:
+    -   id: check-json
+    -   id: trailing-whitespace
+-   repo: https://github.com/TekWizely/pre-commit-golang
+    rev: v1.0.0-beta.5
+    hooks:
+    -   id: go-critic
+    -   id: go-build-pkg
