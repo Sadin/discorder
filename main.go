@@ -14,3 +14,10 @@ var (
 	Token string
 	buffer = make([][]byte, 0)
 )
+
+func main() {
+	fmt.Println("discorder")
+
+	// launch discord session
+
+}
