@@ -34,17 +34,21 @@ GRANT create any procedure TO bot;
 GRANT create sequence TO bot;
 GRANT create synonym TO bot;
 GRANT create session TO bot;
---
-CREATE TABLE bot.guilds
+-- init tables
+DROP TABLE bot.guilds_t;
+CREATE TABLE bot.guilds_t
     (
         guild_id number(20) not null,
         guild_name varchar2(50) not null,
         CONSTRAINT guild_pk PRIMARY KEY (guild_id)
     );
-CREATE TABLE bot.users
+DROP TABLE bot.users_t;
+CREATE TABLE bot.users_t
     (
         user_id number(20) not null,
         user_name varchar2(50) not null,
         CONSTRAINT user_pk PRIMARY KEY (user_id)
     );
-
+-- views
+CREATE OR REPLACE VIEW bot.guilds AS SELECT * from bot.guilds_t;
+CREATE OR REPLACE VIEW bot.users AS SELECT * from bot.users_t;
