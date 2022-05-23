@@ -4,6 +4,9 @@ discorder schema setup script
 Zach Snyder
 Oracle XE version 21
 */
+-- Workaround for XE in container.
+alter session set "_ORACLE_SCRIPT"=TRUE;
+--
 CREATE TABLESPACE tbs_bot_01
     DATAFILE 'tbs_bot_01.dat'
     SIZE 10M
@@ -30,6 +33,7 @@ GRANT create any trigger TO bot;
 GRANT create any procedure TO bot;
 GRANT create sequence TO bot;
 GRANT create synonym TO bot;
+GRANT create session TO bot;
 --
 CREATE TABLE bot.guilds
     (
