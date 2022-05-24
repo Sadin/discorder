@@ -41,14 +41,24 @@ CREATE TABLE bot.guilds_t
         guild_id number(20) not null,
         guild_name varchar2(50) not null,
         CONSTRAINT guild_pk PRIMARY KEY (guild_id)
-    );
+);
 DROP TABLE bot.users_t;
 CREATE TABLE bot.users_t
     (
         user_id number(20) not null,
         user_name varchar2(50) not null,
         CONSTRAINT user_pk PRIMARY KEY (user_id)
-    );
+);
+DROP TABLE bot.message_t;
+CREATE TABLE bot.message_t
+    (
+        message_id number(20) not null,
+        message_time date not null,
+        message_user_id number(20) not null,
+        message_username varchar2(50) not null,
+        message_content varchar2(4000) null
+);
 -- views
 CREATE OR REPLACE VIEW bot.guilds AS SELECT * from bot.guilds_t;
 CREATE OR REPLACE VIEW bot.users AS SELECT * from bot.users_t;
+CREATE OR REPLACE VIEW bot.message AS SELECT * from bot.message_t;
