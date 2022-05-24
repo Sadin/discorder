@@ -17,6 +17,8 @@ var (
 	Dbuser string
 	Dbpass string
 	buffer = make([][]byte, 0)
+
+	DB *sql.DB
 )
 // global variables
 var guild_list []string
@@ -32,28 +34,7 @@ func main() {
 	fmt.Println("discorder")
 
 	// database
-	fmt.Println("connecting to database...")
-	db, err := sql.Open("godror", fmt.Sprintf(`user="%s" password="%s" connectString="localhost:1521"`, Dbuser, Dbpass))
-    	if err != nil {
-        	fmt.Println(err)
-        	return
-    	}
-    	defer db.Close()
-
-	rows,err := db.Query("select sysdate from dual")
-    	if err != nil {
-		fmt.Println("Error running query")
-		fmt.Println(err)
-		return
-    	}
-    	defer rows.Close()
-
-    	var thedate string
-    	for rows.Next() {
-		rows.Scan(&thedate)
-    	}
-    	fmt.Printf("The date is: %s\n", thedate)
-
+	connectDB()
 
 	// launch discord session
 	fmt.Println("creating new discord session...")
@@ -86,6 +67,17 @@ func main() {
 	dg.Close()
 }
 
+func connectDB () {
+	fmt.Println("connecting to database...")
+	db, err := sql.Open("godror", fmt.Sprintf(`user="%s" password="%s" connectString="localhost:1521"`, Dbuser, Dbpass))
+    	if err != nil {
+        	fmt.Println(err)
+        	return
+    	}
+
+    	DB = db
+}
+
 func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 
 	if event.Guild.Unavailable {
@@ -100,6 +92,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// ignore messages sent by bot
 	if m.Author.ID == s.State.User.ID {
 		return
+	}
+
+	_, err := DB.Exec("INSERT INTO message VALUES (:1, :2, :3, :4, :5)", m.ID, m.Timestamp, m.Author.ID, fmt.Sprintf("%s",m.Author), m.Content)
+	if err != nil {
+	    fmt.Println(".....Error Inserting data")
+	    fmt.Println(err)
+	    return
 	}
 
 	message := fmt.Sprintf(m.Content)
