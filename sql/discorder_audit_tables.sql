@@ -5,21 +5,21 @@ Zach Snyder
 Oracle XE version 21
 */
 -- audit tables
-CREATE TABLE users_log_t (
+CREATE TABLE bot.users_log_t (
     user_id number(20) not null,
     user_name varchar2(50) not null,
     action varchar2(1 CHAR),
     action_user varchar2(50),
     action_time date
 );
-CREATE TABLE guilds_log_t (
+CREATE TABLE bot.guilds_log_t (
     guild_id number(20) not null,
     guild_name varchar2(50) not null,
     action varchar2(1 CHAR),
     action_user varchar2(50),
     action_time date
 );
-CREATE TABLE message_log_t (
+CREATE TABLE bot.message_log_t (
     message_id number(20) not null,
     message_time date not null,
     message_guild_id number(20) not null,
@@ -32,7 +32,7 @@ CREATE TABLE message_log_t (
     action_time date
 );
 -- views supporting audit tables
-CREATE OR REPLACE VIEW users_log AS SELECT * FROM users_log_t;
-CREATE OR REPLACE VIEW guilds_log AS SELECT * FROM guilds_log_t;
-CREATE OR REPLACE VIEW message_log AS SELECT * FROM message_log_t;
+CREATE OR REPLACE VIEW bot.users_log AS SELECT * FROM bot.users_log_t;
+CREATE OR REPLACE VIEW bot.guilds_log AS SELECT * FROM bot.guilds_log_t;
+CREATE OR REPLACE VIEW bot.message_log AS SELECT * FROM bot.message_log_t;
 --
