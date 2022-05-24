@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"flag"
+    	"database/sql"
+    	_ "github.com/godror/godror"
 	"os/signal"
 	"syscall"
 	"github.com/bwmarrin/discordgo"
@@ -12,6 +14,8 @@ import (
 // system variables
 var (
 	Token string
+	Dbuser string
+	Dbpass string
 	buffer = make([][]byte, 0)
 )
 // global variables
@@ -19,11 +23,37 @@ var guild_list []string
 
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
+	flag.StringVar(&Dbuser, "u", "", "DB username")
+	flag.StringVar(&Dbpass, "p", "", "DB Pass" )
 	flag.Parse()
 }
 
 func main() {
 	fmt.Println("discorder")
+
+	// database
+	fmt.Println("connecting to database...")
+	db, err := sql.Open("godror", fmt.Sprintf(`user="%s" password="%s" connectString="localhost:1521"`, Dbuser, Dbpass))
+    	if err != nil {
+        	fmt.Println(err)
+        	return
+    	}
+    	defer db.Close()
+
+	rows,err := db.Query("select sysdate from dual")
+    	if err != nil {
+		fmt.Println("Error running query")
+		fmt.Println(err)
+		return
+    	}
+    	defer rows.Close()
+
+    	var thedate string
+    	for rows.Next() {
+		rows.Scan(&thedate)
+    	}
+    	fmt.Printf("The date is: %s\n", thedate)
+
 
 	// launch discord session
 	fmt.Println("creating new discord session...")
@@ -72,5 +102,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	fmt.Println("Message detected")
+	message := fmt.Sprintf(m.Content)
+	fmt.Println(message)
 }
