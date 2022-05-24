@@ -54,10 +54,17 @@ CREATE TABLE bot.message_t
     (
         message_id number(20) not null,
         message_time date not null,
+        message_guild_id number(20) not null,
+        message_channel_id number(20) not null,
         message_user_id number(20) not null,
         message_username varchar2(50) not null,
-        message_content varchar2(4000) null
+        message_content varchar2(4000) null,
+        CONSTRAINT message_pk PRIMARY KEY (message_id)
 );
+ALTER TABLE bot.message_t
+ADD CONSTRAINT fk_message_guild_id
+	FOREIGN KEY (message_guild_id)
+	REFERENCES bot.guild_t(guild_id);
 -- views
 CREATE OR REPLACE VIEW bot.guilds AS SELECT * from bot.guilds_t;
 CREATE OR REPLACE VIEW bot.users AS SELECT * from bot.users_t;
