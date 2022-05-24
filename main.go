@@ -85,13 +85,12 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		return
 	}
 	// check if guild is already seen in database
-	if (checkGuild(event.Guild.ID)) == 0 {
+	if checkGuild(event.Guild.ID, event.Guild.Name) == 0 {
 	    // store guild
 	    go storeGuild(event.Guild.ID, event.Guild.Name)
 	}
 
 	guild_list = append(guild_list,event.Guild.Name)
-	fmt.Println(event.Guild.Name)
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -115,12 +114,18 @@ func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func checkGuild(id string) int {
+func checkGuild(id string, name string) int {
 	var count int
 	sql := fmt.Sprintf("SELECT count(*) FROM guilds WHERE guild_id = %s", id)
 	row := DB.QueryRow(sql, godror.FetchArraySize(1))
 
 	row.Scan(&count)
+
+	if count == 0 {
+	    fmt.Println(name, "not found in db...")
+	} else {
+	    fmt.Println(name, "found in db...")
+	}
 
 	return count
 }
