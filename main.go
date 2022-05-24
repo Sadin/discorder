@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"flag"
+	"os/signal"
+	"syscall"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -13,11 +17,16 @@ var (
 // global variables
 var guild_list []string
 
+func init() {
+	flag.StringVar(&Token, "t", "", "Bot Token")
+	flag.Parse()
+}
+
 func main() {
 	fmt.Println("discorder")
 
 	// launch discord session
-	fmt.Print("creating new discord session...")
+	fmt.Println("creating new discord session...")
 	dg, err := discordgo.New("Bot " + Token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
@@ -28,6 +37,23 @@ func main() {
 	dg.AddHandler(guildCreate)
 	// register message create event handler
 	dg.AddHandler(messageCreate)
+
+	// open connection to discord
+	fmt.Print("connecting to discord")
+	err = dg.Open()
+	if err != nil {
+		fmt.Println("error opening connection,", err)
+		return
+	}
+
+	// wait for CTRL-C or term sig
+	fmt.Println("Punx operational. Press CTRL-C to exit")
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	<-sc
+
+	// close
+	dg.Close()
 }
 
 func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
