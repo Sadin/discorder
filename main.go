@@ -101,13 +101,17 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	go logMessage(s, m)
+
+	message := fmt.Sprintf(m.Content)
+	fmt.Println(message)
+}
+
+func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	_, err := DB.Exec("INSERT INTO message VALUES (:1, :2, :3, :4, :5)", m.ID, m.Timestamp, m.Author.ID, fmt.Sprintf("%s",m.Author), m.Content)
 	if err != nil {
 	    fmt.Println(".....Error Inserting message data")
 	    fmt.Println(err)
 	    return
 	}
-
-	message := fmt.Sprintf(m.Content)
-	fmt.Println(message)
 }
