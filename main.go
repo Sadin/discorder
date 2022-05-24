@@ -100,7 +100,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
-
+	// insert in goroutine
 	go logMessage(s, m)
 
 	message := fmt.Sprintf(m.Content)
