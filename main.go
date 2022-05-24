@@ -2,11 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"os"
-	"strings"
-	"time"
-	"github.com/bwmarrin/discord.go"
+	"github.com/bwmarrin/discordgo"
 )
 
 // system variables
