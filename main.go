@@ -84,6 +84,13 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		fmt.Println("error with guild" + event.Guild.ID)
 		return
 	}
+	_, err := DB.Exec("INSERT INTO guilds VALUES (:1, :2)",event.Guild.ID, event.Guild.Name)
+	if err != nil {
+	    fmt.Println(".....Error Inserting guild data")
+	    fmt.Println(err)
+	    return
+	}
+
 	guild_list = append(guild_list,event.Guild.Name)
 	fmt.Println(event.Guild.Name)
 }
@@ -96,7 +103,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	_, err := DB.Exec("INSERT INTO message VALUES (:1, :2, :3, :4, :5)", m.ID, m.Timestamp, m.Author.ID, fmt.Sprintf("%s",m.Author), m.Content)
 	if err != nil {
-	    fmt.Println(".....Error Inserting data")
+	    fmt.Println(".....Error Inserting message data")
 	    fmt.Println(err)
 	    return
 	}
