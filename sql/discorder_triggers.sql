@@ -49,3 +49,77 @@ CREATE OR REPLACE TRIGGER bot.messages_aiud AFTER INSERT OR UPDATE OR DELETE ON 
         END IF;
     END IF;
 END;
+--
+DROP TRIGGER bot.guilds_aiud;
+CREATE OR REPLACE TRIGGER bot.guilds_aiud AFTER INSERT OR UPDATE OR DELETE ON bot.guilds_t FOR EACH ROW
+    DECLARE
+        v_date date:= SYSDATE;
+        v_action varchar2(1 CHAR):= 'I';
+        v_user varchar2(50):= NULL;
+    BEGIN
+        IF DELETING THEN
+            INSERT INTO bot.guilds_log VALUES (
+                :old.guild_id,
+                :old.guild_name,
+                'D',
+                v_user,
+                v_date
+            );
+        ELSE
+            IF INSERTING THEN
+                INSERT INTO bot.guilds_log VALUES (
+                    :old.guild_id,
+                    :old.guild_name,
+                    v_action,
+                    v_user,
+                    v_date
+                );
+            ELSE
+                v_action := 'U';
+                INSERT INTO bot.guilds_log VALUES (
+                    :old.guild_id,
+                    :old.guild_name,
+                    v_action,
+                    v_user,
+                    v_date
+                );
+        END IF;
+    END IF;
+END;
+--
+DROP TRIGGER bot.users_aiud;
+CREATE OR REPLACE TRIGGER bot.users_aiud AFTER INSERT OR UPDATE OR DELETE ON bot.users_t FOR EACH ROW
+    DECLARE
+        v_date date:= SYSDATE;
+        v_action varchar2(1 CHAR):= 'I';
+        v_user varchar2(50):= NULL;
+    BEGIN
+        IF DELETING THEN
+            INSERT INTO bot.users_log VALUES (
+                :old.user_id,
+                :old.user_name,
+                'D',
+                v_user,
+                v_date
+            );
+        ELSE
+            IF INSERTING THEN
+                INSERT INTO bot.users_log VALUES (
+                    :old.user_id,
+                    :old.user_name,
+                    v_action,
+                    v_user,
+                    v_date
+                );
+            ELSE
+                v_action := 'U';
+                INSERT INTO bot.users_log VALUES (
+                    :old.user_id,
+                    :old.user_name,
+                    v_action,
+                    v_user,
+                    v_date
+                );
+        END IF;
+    END IF;
+END;
