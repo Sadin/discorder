@@ -62,3 +62,9 @@ CREATE TABLE bot.message_t
 CREATE OR REPLACE VIEW bot.guilds AS SELECT * from bot.guilds_t;
 CREATE OR REPLACE VIEW bot.users AS SELECT * from bot.users_t;
 CREATE OR REPLACE VIEW bot.message AS SELECT * from bot.message_t;
+--
+GRANT INSERT, UPDATE, DELETE on bot.message TO bot;
+GRANT INSERT, UPDATE, DELETE on bot.users TO bot;
+GRANT INSERT, UPDATE, DELETE on bot.guilds TO bot;
+--
+commit;
