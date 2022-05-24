@@ -84,12 +84,8 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		fmt.Println("error with guild" + event.Guild.ID)
 		return
 	}
-	_, err := DB.Exec("INSERT INTO guilds VALUES (:1, :2)",event.Guild.ID, event.Guild.Name)
-	if err != nil {
-	    fmt.Println(".....Error Inserting guild data")
-	    fmt.Println(err)
-	    return
-	}
+	// store guild
+	go storeGuild(event.Guild.ID, event.Guild.Name)
 
 	guild_list = append(guild_list,event.Guild.Name)
 	fmt.Println(event.Guild.Name)
@@ -111,6 +107,19 @@ func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	_, err := DB.Exec("INSERT INTO message VALUES (:1, :2, :3, :4, :5, :6, :7)", m.ID, m.Timestamp, m.GuildID, m.ChannelID, m.Author.ID, fmt.Sprintf("%s",m.Author), m.Content)
 	if err != nil {
 	    fmt.Println(".....Error Inserting message data")
+	    fmt.Println(err)
+	    return
+	}
+}
+
+func checkGuild(s *discordgo.Session, m *discordgo.MessageCreate) {
+	return
+}
+
+func storeGuild(id string, name string) {
+	_, err := DB.Exec("INSERT INTO guilds VALUES (:1, :2)", id, name)
+	if err != nil {
+	    fmt.Println(".....Error Inserting guild data")
 	    fmt.Println(err)
 	    return
 	}
