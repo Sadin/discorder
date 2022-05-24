@@ -6,6 +6,7 @@ import (
 	"flag"
     	"database/sql"
     	_ "github.com/godror/godror"
+    	"github.com/godror/godror"
 	"os/signal"
 	"syscall"
 	"github.com/bwmarrin/discordgo"
@@ -79,13 +80,15 @@ func connectDB () {
 }
 
 func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
-
 	if event.Guild.Unavailable {
 		fmt.Println("error with guild" + event.Guild.ID)
 		return
 	}
-	// store guild
-	go storeGuild(event.Guild.ID, event.Guild.Name)
+	// check if guild is already seen in database
+	if (checkGuild(event.Guild.ID)) == 0 {
+	    // store guild
+	    go storeGuild(event.Guild.ID, event.Guild.Name)
+	}
 
 	guild_list = append(guild_list,event.Guild.Name)
 	fmt.Println(event.Guild.Name)
@@ -112,8 +115,14 @@ func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func checkGuild(s *discordgo.Session, m *discordgo.MessageCreate) {
-	return
+func checkGuild(id string) int {
+	var count int
+	sql := fmt.Sprintf("SELECT count(*) FROM guilds WHERE guild_id = %s", id)
+	row := DB.QueryRow(sql, godror.FetchArraySize(1))
+
+	row.Scan(&count)
+
+	return count
 }
 
 func storeGuild(id string, name string) {
