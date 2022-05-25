@@ -10,6 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 	"github.com/bwmarrin/discordgo"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 )
 
 // system variables
@@ -20,7 +22,11 @@ var (
 	buffer = make([][]byte, 0)
 
 	DB *sql.DB
+
+	// logging
+	logger log.Logger
 )
+
 // global variables
 var guild_list []string
 
@@ -34,14 +40,19 @@ func init() {
 func main() {
 	fmt.Println("discorder")
 
+	// set up logging
+	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	logger = level.NewFilter(logger, level.AllowInfo())
+	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
+
 	// database
 	connectDB()
 
 	// launch discord session
-	fmt.Println("creating new discord session...")
+	level.Info(logger).Log("msg", "creating new discord session")
 	dg, err := discordgo.New("Bot " + Token)
 	if err != nil {
-		fmt.Println("error creating Discord session,", err)
+		logger.Log("err", fmt.Sprintf("error creating Discord session,", err))
 		return
 	}
 
@@ -55,7 +66,7 @@ func main() {
 	dg.AddHandler(messageUpdate)
 
 	// open connection to discord
-	fmt.Print("connecting to discord")
+	level.Info(logger).Log("msg", "connecting to discord")
 	err = dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
@@ -63,7 +74,7 @@ func main() {
 	}
 
 	// wait for CTRL-C or term sig
-	fmt.Println("Punx operational. Press CTRL-C to exit")
+	level.Info(logger).Log("msg", "bot online")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
@@ -73,7 +84,7 @@ func main() {
 }
 
 func connectDB () {
-	fmt.Println("connecting to database...")
+	level.Info(logger).Log("msg", "connecting to database")
 	db, err := sql.Open("godror", fmt.Sprintf(`user="%s" password="%s" connectString="localhost:1521"`, Dbuser, Dbpass))
     	if err != nil {
         	fmt.Println(err)
@@ -98,7 +109,7 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 }
 
 func guildUpdate(s *discordgo.Session, event *discordgo.GuildUpdate) {
-	fmt.Println(event.Guild.Name, "updated")
+	level.Info(logger).Log("msg", fmt.Sprintf(event.Guild.Name, "updated"))
 }
 
 func checkGuild(id string, name string) int {
@@ -109,9 +120,9 @@ func checkGuild(id string, name string) int {
 	row.Scan(&count)
 
 	if count == 0 {
-	    fmt.Println(name, "not found in db...")
+	    level.Info(logger).Log("msg", fmt.Sprintf("%s not found in db...", name))
 	} else {
-	    fmt.Println(name, "found in db...")
+	    level.Info(logger).Log("msg", fmt.Sprintf("%s found in db...", name))
 	}
 
 	return count
@@ -120,7 +131,7 @@ func checkGuild(id string, name string) int {
 func storeGuild(id string, name string) {
 	_, err := DB.Exec("INSERT INTO guilds VALUES (:1, :2)", id, name)
 	if err != nil {
-	    fmt.Println(".....Error Inserting guild data")
+	    level.Warn(logger).Log("warn", ".....Error Inserting guild data")
 	    fmt.Println(err)
 	    return
 	}
@@ -134,11 +145,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// insert in goroutine
 	go logMessage(s, m)
 
-	fmt.Println(fmt.Sprintf(m.Content))
+	level.Info(logger).Log("chat", fmt.Sprintf(m.Content))
 
 	for i:=0; i<len(m.Attachments); i++ {
 		if i==0 {
-			fmt.Println("Attachment(s) Found...")
+			level.Info(logger).Log("msg", "Attachment(s) Found...")
 		}
 		go parseAttachement(m.ID, m.Attachments[i])
 	}
@@ -152,7 +163,7 @@ func messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
 	    fmt.Println(err)
 	    return
 	}
-	fmt.Println(fmt.Sprintf(`Message %s updated in %s`, m.ID, m.GuildID))
+	level.Info(logger).Log("msg", fmt.Sprintf(`Message %s updated in %s`, m.ID, m.GuildID))
 }
 
 func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -165,6 +176,6 @@ func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func parseAttachement (mid string, a *discordgo.MessageAttachment) {
-	fmt.Println(fmt.Sprintf("ID: %s\n URL: %s\n ProxyURL: %s\n Filename %s\n ContentType %s\n Dimensions: %dx%d\n Size: %d", a.ID, a.URL, a.ProxyURL, a.Filename, a.ContentType, a.Width, a.Height, a.Size))
+	level.Info(logger).Log("attachment", fmt.Sprintf("ID: %s\n URL: %s\n ProxyURL: %s\n Filename %s\n ContentType %s\n Dimensions: %dx%d\n Size: %d", a.ID, a.URL, a.ProxyURL, a.Filename, a.ContentType, a.Width, a.Height, a.Size))
 }
 
