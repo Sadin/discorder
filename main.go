@@ -110,14 +110,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 // Database related functions
 func messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
 	//update information in message_log
-	_, err := DB.Exec("UPDATE message SET message_content = :1 WHERE message_id = :2 and message_guild_id = :3 and message_channel_id = :4", m.Content, m.BeforeUpdate.ID, m.GuildID, m.ChannelID)
+	_, err := DB.Exec("UPDATE message SET message_content = :1 WHERE message_id = :2 and message_guild_id = :3 and message_channel_id = :4", m.Content, m.ID, m.GuildID, m.ChannelID)
 	if err != nil {
 	    fmt.Println(".....Error updating message data")
 	    fmt.Println(err)
 	    return
 	}
-	output := "Updating message id " + fmt.Sprintf(m.BeforeUpdate.ID) + " to " + fmt.Sprintf(m.ID)
-	fmt.Println(output)
+	fmt.Println(fmt.Sprintf(`Message %s updated in %s`, m.ID, m.GuildID))
 }
 
 func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
