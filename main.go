@@ -47,6 +47,8 @@ func main() {
 
 	// Register guildCreate as a callback for the guildCreate events.
 	dg.AddHandler(guildCreate)
+	/// register guildUpdate event
+	dg.AddHandler(guildUpdate)
 	// register message create event handler
 	dg.AddHandler(messageCreate)
 	// register message edit event handler
@@ -95,37 +97,8 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	guild_list = append(guild_list,event.Guild.Name)
 }
 
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// ignore messages sent by bot
-	if m.Author.ID == s.State.User.ID {
-		return
-	}
-	// insert in goroutine
-	go logMessage(s, m)
-
-	message := fmt.Sprintf(m.Content)
-	fmt.Println(message)
-}
-
-// Database related functions
-func messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
-	//update information in message_log
-	_, err := DB.Exec("UPDATE message SET message_content = :1 WHERE message_id = :2 and message_guild_id = :3 and message_channel_id = :4", m.Content, m.ID, m.GuildID, m.ChannelID)
-	if err != nil {
-	    fmt.Println(".....Error updating message data")
-	    fmt.Println(err)
-	    return
-	}
-	fmt.Println(fmt.Sprintf(`Message %s updated in %s`, m.ID, m.GuildID))
-}
-
-func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
-	_, err := DB.Exec("INSERT INTO message VALUES (:1, :2, :3, :4, :5, :6, :7)", m.ID, m.Timestamp, m.GuildID, m.ChannelID, m.Author.ID, fmt.Sprintf("%s",m.Author), m.Content)
-	if err != nil {
-	    fmt.Println(".....Error Inserting message data")
-	    fmt.Println(err)
-	    return
-	}
+func guildUpdate(s *discordgo.Session, event *discordgo.GuildUpdate) {
+	fmt.Println(event.Guild.Name, "updated")
 }
 
 func checkGuild(id string, name string) int {
@@ -152,3 +125,36 @@ func storeGuild(id string, name string) {
 	    return
 	}
 }
+
+func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// ignore messages sent by bot
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+	// insert in goroutine
+	go logMessage(s, m)
+
+	message := fmt.Sprintf(m.Content)
+	fmt.Println(message)
+}
+
+func messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
+	//update information in message_log
+	_, err := DB.Exec("UPDATE message SET message_content = :1 WHERE message_id = :2 and message_guild_id = :3 and message_channel_id = :4", m.Content, m.ID, m.GuildID, m.ChannelID)
+	if err != nil {
+	    fmt.Println(".....Error updating message data")
+	    fmt.Println(err)
+	    return
+	}
+	fmt.Println(fmt.Sprintf(`Message %s updated in %s`, m.ID, m.GuildID))
+}
+
+func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	_, err := DB.Exec("INSERT INTO message VALUES (:1, :2, :3, :4, :5, :6, :7)", m.ID, m.Timestamp, m.GuildID, m.ChannelID, m.Author.ID, fmt.Sprintf("%s",m.Author), m.Content)
+	if err != nil {
+	    fmt.Println(".....Error Inserting message data")
+	    fmt.Println(err)
+	    return
+	}
+}
+
