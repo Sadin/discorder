@@ -134,8 +134,14 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// insert in goroutine
 	go logMessage(s, m)
 
-	message := fmt.Sprintf(m.Content)
-	fmt.Println(message)
+	fmt.Println(fmt.Sprintf(m.Content))
+
+	for i:=0; i<len(m.Attachments); i++ {
+		if i==0 {
+			fmt.Println("Attachment(s) Found...")
+		}
+		go parseAttachement(m.ID, m.Attachments[i])
+	}
 }
 
 func messageUpdate(s *discordgo.Session, m *discordgo.MessageUpdate) {
@@ -156,5 +162,9 @@ func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	    fmt.Println(err)
 	    return
 	}
+}
+
+func parseAttachement (mid string, a *discordgo.MessageAttachment) {
+	fmt.Println(fmt.Sprintf("ID: %s\n URL: %s\n ProxyURL: %s\n Filename %s\n ContentType %s\n Dimensions: %dx%d\n Size: %d", a.ID, a.URL, a.ProxyURL, a.Filename, a.ContentType, a.Width, a.Height, a.Size))
 }
 
