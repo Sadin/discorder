@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"flag"
     	"database/sql"
     	_ "github.com/godror/godror"
@@ -145,13 +146,21 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// insert in goroutine
 	go logMessage(s, m)
 
-	level.Info(logger).Log("chat", fmt.Sprintf(m.Content))
-
-	for i:=0; i<len(m.Attachments); i++ {
-		if i==0 {
-			level.Info(logger).Log("msg", "Attachment(s) Found...")
+	// if command, parse and execute
+	cmdStr, err := regexp.MatchString(`>>`, m.Content)
+	if err != nil {
+		level.Error(logger).Log("err", err)
+	}
+	if cmdStr == true {
+		parseCommand(m)
+	} else {
+		level.Info(logger).Log("chat", fmt.Sprintf(m.Content))
+		for i:=0; i<len(m.Attachments); i++ {
+			if i==0 {
+				level.Info(logger).Log("msg", "Attachment(s) Found...")
+			}
+			go parseAttachement(m.ID, m.Attachments[i])
 		}
-		go parseAttachement(m.ID, m.Attachments[i])
 	}
 }
 
@@ -170,6 +179,10 @@ func parseAttachement (mid string, a *discordgo.MessageAttachment) {
 	level.Info(logger).Log("attachment", fmt.Sprintf("ID: %s\n URL: %s\n ProxyURL: %s\n Filename %s\n ContentType %s\n Dimensions: %dx%d\n Size: %d", a.ID, a.URL, a.ProxyURL, a.Filename, a.ContentType, a.Width, a.Height, a.Size))
 }
 
+func parseCommand(m *discordgo.MessageCreate) {
+	level.Info(logger).Log("cmd", "true", "body", fmt.Sprintf(m.Content))
+}
+
 func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	_, err := DB.Exec("INSERT INTO message VALUES (:1, :2, :3, :4, :5, :6, :7)", m.ID, m.Timestamp, m.GuildID, m.ChannelID, m.Author.ID, fmt.Sprintf("%s",m.Author), m.Content)
 	if err != nil {
@@ -178,6 +191,5 @@ func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	    return
 	}
 }
-
 
 
