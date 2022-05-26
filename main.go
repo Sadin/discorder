@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 	"regexp"
 	"flag"
     	"database/sql"
@@ -30,6 +31,7 @@ var (
 
 // global variables
 var guild_list []string
+var registered_commands = make(map[string]int)
 
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
@@ -40,6 +42,9 @@ func init() {
 
 func main() {
 	fmt.Println("discorder")
+
+	// populate commands map
+	registered_commands["help"] = 1
 
 	// set up logging
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
@@ -152,7 +157,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		level.Error(logger).Log("err", err)
 	}
 	if cmdStr == true {
-		parseCommand(m)
+		feedback := parseCommand(m)
+		_,err := s.ChannelMessageSend(m.ChannelID, feedback)
+		if err != nil {
+			level.Error(logger).Log("err", err)
+		}
 	} else {
 		level.Info(logger).Log("chat", fmt.Sprintf(m.Content))
 		for i:=0; i<len(m.Attachments); i++ {
@@ -179,8 +188,51 @@ func parseAttachement (mid string, a *discordgo.MessageAttachment) {
 	level.Info(logger).Log("attachment", fmt.Sprintf("ID: %s\n URL: %s\n ProxyURL: %s\n Filename %s\n ContentType %s\n Dimensions: %dx%d\n Size: %d", a.ID, a.URL, a.ProxyURL, a.Filename, a.ContentType, a.Width, a.Height, a.Size))
 }
 
-func parseCommand(m *discordgo.MessageCreate) {
-	level.Info(logger).Log("cmd", "true", "body", fmt.Sprintf(m.Content))
+func parseCommand(m *discordgo.MessageCreate) string {
+	// regex to clear command prefix
+	re := regexp.MustCompile(`>>(.*)`)
+	// split command from params substring, apply regex fitler to command
+	message := strings.SplitN(m.Content, " ", 2)
+	command, args := re.FindStringSubmatch(message[0]), message[1]
+
+	level.Info(logger).Log("sys", "command received", "cmd", fmt.Sprintf(command[1]))
+	if validateCommand(command[1]) {
+		var empty []string
+		level.Info(logger).Log("sys", "command exists, executing.")
+		if message[1] != "" {
+			return executeCommand(command[1], strings.Split(args, " "))
+		} else {
+			return executeCommand(command[1], empty)
+		}
+	} else {
+		level.Info(logger).Log("sys", "command does not exist, informing user.")
+		return "command not found."
+	}
+}
+
+func validateCommand(cmd string) bool {
+	// check if command is in the registered list
+	fmt.Println(cmd)
+	if _, ok := registered_commands[cmd]; ok {
+		return true
+	}
+	// if "a" does not exist
+	return false
+}
+
+func executeCommand(cmd string, params []string) string {
+	fmt.Println(cmd)
+	// run specified command function
+	switch cmd {
+	case "help":
+		return executeHelpCommand()
+	default:
+		return "testing"
+	}
+}
+
+func executeHelpCommand() string {
+	return "help placeholder"
 }
 
 func logMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
