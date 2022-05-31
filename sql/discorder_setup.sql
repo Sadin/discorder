@@ -35,6 +35,13 @@ GRANT create sequence TO bot;
 GRANT create synonym TO bot;
 GRANT create session TO bot;
 -- init tables
+-- lookup
+DROP TABLE bot.event_t (
+    event_id number(20) not null,
+    event_type_id number(20) not null,
+    CONSTRAINT event
+);
+-- data
 DROP TABLE bot.guilds_t;
 CREATE TABLE bot.guilds_t
     (
