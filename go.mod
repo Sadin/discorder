@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/bwmarrin/discordgo v0.25.0
-	github.com/godror/godror v0.33.2
+	github.com/godror/godror v0.33.3
 )
 
 require (
